@@ -1,0 +1,100 @@
+{
+  "theme": "Dark",
+  "archetype": "7 (Electric & Neon) combined with 4 (Swiss & High-Contrast) — tailored for Automotive HUD",
+  "mood": "Cinematic, futuristic, diagnostic, precision, high-tech.",
+  "forbidden_elements": [
+    "Purple gradients",
+    "Inter font",
+    "Teal (#1B93A4)",
+    "Generic SaaS layouts",
+    "Pure transparent headers without blur"
+  ],
+  "colors": {
+    "background_primary": "#05070A",
+    "background_secondary": "#0A0D12",
+    "surface_glass": "rgba(10, 13, 18, 0.65)",
+    "primary_neon": "#00F0FF",
+    "primary_neon_dim": "rgba(0, 240, 255, 0.15)",
+    "metallic_border": "rgba(255, 255, 255, 0.15)",
+    "text_primary": "#FFFFFF",
+    "text_secondary": "#A0ABC0",
+    "warning_amber": "#FFB300",
+    "critical_red": "#FF3B30"
+  },
+  "typography": {
+    "headings": {
+      "font_family": "Rajdhani, sans-serif",
+      "style": "uppercase, tracking-widest, font-bold, technical styling"
+    },
+    "body": {
+      "font_family": "Chivo, sans-serif",
+      "style": "clean, modern, highly legible"
+    },
+    "numbers_and_data": {
+      "font_family": "JetBrains Mono, monospace",
+      "style": "tabular-nums, precise, technical, used for pricing and telemetry"
+    }
+  },
+  "visual_enhancers": {
+    "glassmorphism": "backdrop-blur-xl bg-[#0A0D12]/60 border border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.1)]",
+    "neon_glow": "shadow-[0_0_15px_rgba(0,240,255,0.4)]",
+    "scanlines": "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,240,255,0.03) 2px, rgba(0,240,255,0.03) 4px)",
+    "metallic_accents": "Use pure white 1px inner borders to simulate reflective chrome edges. Soft ambient blooms."
+  },
+  "spacing_and_layout": {
+    "grid_system": "Bento 'Control Room' grid (grid-cols-1 md:grid-cols-4) with tight gap-4 for the parts dashboard.",
+    "container_padding": "p-6 or p-8 generously to allow HUD elements to breathe.",
+    "border_radius": "rounded-lg (subtle, technical edges, not overly pill-shaped).",
+    "mobile_first": "Ensure max-w-md mx-auto or full-width mobile container framing."
+  },
+  "components_strategy": {
+    "cards": "Flat dark metallic backgrounds with 1px border-white/10. On hover, border shifts to neon blue (border-[#00F0FF]/50) and gains a subtle drop-shadow glow.",
+    "buttons": "Primary: Solid neon blue (bg-[#00F0FF] text-black) with hover glow. Secondary: Transparent with neon blue 1px border and text.",
+    "inputs": "Shadcn heavily customized: bg-black/50, border-white/10, focus:border-[#00F0FF] focus:ring-1 focus:ring-[#00F0FF].",
+    "icons": "Use Phosphor Icons (technical, duotone or thin styles)."
+  },
+  "motion_and_interaction": {
+    "hover_states": "Border colors transition to neon blue, text glows.",
+    "page_transitions": "Framer Motion fade and slide-up (opacity 0 to 1, y: 10 to 0).",
+    "data_loading": "Use the scanline effect or glowing pulse instead of standard spinners."
+  },
+  "accessibility": {
+    "contrast": "Ensure text against glass surfaces uses text-shadow or sufficiently dark backgrounds for APCA/WCAG AA.",
+    "focus_states": "High visibility focus rings using the baby blue neon color.",
+    "testing_attributes": "All interactive elements MUST include data-testid based on role (e.g. data-testid='diagnose-button')."
+  },
+  "media_and_images": [
+    {
+      "category": "hero_background",
+      "url": "https://static.prod-images.emergentagent.com/jobs/1aaee4ca-1bf1-480f-a820-62cdc78765d9/images/71c0141e73284d1049182e56686e4d66c78abd75db3f5c21cf8e87bc8f3e54fb.png",
+      "description": "Metal HUD Background to be used behind the main dashboard or as a subtle app background pattern."
+    },
+    {
+      "category": "ai_mechanic_avatar",
+      "url": "https://static.prod-images.emergentagent.com/jobs/1aaee4ca-1bf1-480f-a820-62cdc78765d9/images/b2db46a43b39468bfced5adcd8cb5ae7ad078eab691529ee704c29e5f1384f2d.png",
+      "description": "Futuristic car engine hologram used as the visual identity for the AI Mechanic chat."
+    },
+    {
+      "category": "voice_recording_visual",
+      "url": "https://static.prod-images.emergentagent.com/jobs/1aaee4ca-1bf1-480f-a820-62cdc78765d9/images/d07ca468c4bfde29e611ae12458466434fcd3ec44d236162013a23c80a8909b4.png",
+      "description": "Glowing baby blue waveform for the Voice Recording feature in AI Mechanic."
+    },
+    {
+      "category": "parts_placeholder_1",
+      "url": "https://images.unsplash.com/photo-1720929425318-d434e1b26c35?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1NzB8MHwxfHNlYXJjaHwyfHxjYXIlMjBlbmdpbmUlMjBkYXJrfGVufDB8fHx8MTc3OTE3MTQ3OHww&ixlib=rb-4.1.0&q=85",
+      "description": "Close up of an engine in a car, use as product image in parts search."
+    },
+    {
+      "category": "parts_placeholder_2",
+      "url": "https://images.unsplash.com/photo-1673153069612-3c4b591860ce?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1NzB8MHwxfHNlYXJjaHwzfHxjYXIlMjBlbmdpbmUlMjBkYXJrfGVufDB8fHx8MTc3OTE3MTQ3OHww&ixlib=rb-4.1.0&q=85",
+      "description": "Close up of a car's exhaust system, use as product image in parts search."
+    }
+  ],
+  "instructions_to_main_agent": [
+    "Build a mobile-first web app mimicking a React Native/Expo UI (since stack is Tailwind/React).",
+    "Use Phosphor Icons (yarn add @phosphor-icons/react).",
+    "Use Framer Motion for screen transitions.",
+    "Implement the specific UI layout for the Dashboard (Bento Grid), Chat Screen (AI multi-turn Q&A), Parts Search (list + images + price), and Profile.",
+    "Ensure the scanline gradient and neon glows are strictly applied to surfaces without looking muddy."
+  ]
+}

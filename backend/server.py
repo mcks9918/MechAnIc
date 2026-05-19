@@ -240,10 +240,24 @@ async def ai_chat(body: ChatIn, user=Depends(current_user)):
         if body.vehicle:
             sys_msg += f"\n\nUser's vehicle: {body.vehicle.year} {body.vehicle.make} {body.vehicle.model}."
 
+        # Load prior turns for this session so the model has full context
+        prior = await db.chat_messages.find(
+            {"user_id": user["id"], "session_id": body.session_id},
+            {"_id": 0, "message": 1, "reply": 1},
+        ).sort("ts", 1).to_list(200)
+
+        initial_messages = [{"role": "system", "content": sys_msg}]
+        for t in prior:
+            if t.get("message"):
+                initial_messages.append({"role": "user", "content": t["message"]})
+            if t.get("reply"):
+                initial_messages.append({"role": "assistant", "content": t["reply"]})
+
         chat = LlmChat(
             api_key=EMERGENT_LLM_KEY,
             session_id=f"{user['id']}::{body.session_id}",
             system_message=sys_msg,
+            initial_messages=initial_messages,
         ).with_model("anthropic", "claude-sonnet-4-5-20250929")
 
         file_contents = []

@@ -39,6 +39,8 @@ export const api = {
   vehicles: () => req<Vehicle[]>("/vehicles"),
   addVehicle: (v: { make: string; model: string; year: number; nickname?: string }) =>
     req<Vehicle>("/vehicles", { method: "POST", body: JSON.stringify(v) }),
+  updateVehicle: (id: string, v: { make: string; model: string; year: number; nickname?: string }) =>
+    req<Vehicle>(`/vehicles/${id}`, { method: "PUT", body: JSON.stringify(v) }),
   deleteVehicle: (id: string) => req(`/vehicles/${id}`, { method: "DELETE" }),
   chat: (payload: { session_id: string; message: string; image_base64?: string; vehicle?: any }) =>
     req<{ session_id: string; reply: string }>("/ai/chat", { method: "POST", body: JSON.stringify(payload) }),

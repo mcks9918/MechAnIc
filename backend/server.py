@@ -213,6 +213,17 @@ async def add_vehicle(body: VehicleIn, user=Depends(current_user)):
     return v
 
 
+@api.put("/vehicles/{vehicle_id}", response_model=Vehicle)
+async def update_vehicle(vehicle_id: str, body: VehicleIn, user=Depends(current_user)):
+    existing = await db.vehicles.find_one({"id": vehicle_id, "user_id": user["id"]}, {"_id": 0})
+    if not existing:
+        raise HTTPException(404, "Not found")
+    updates = {"make": body.make, "model": body.model, "year": body.year, "nickname": body.nickname}
+    await db.vehicles.update_one({"id": vehicle_id, "user_id": user["id"]}, {"$set": updates})
+    existing.update(updates)
+    return Vehicle(**existing)
+
+
 @api.delete("/vehicles/{vehicle_id}")
 async def delete_vehicle(vehicle_id: str, user=Depends(current_user)):
     res = await db.vehicles.delete_one({"id": vehicle_id, "user_id": user["id"]})

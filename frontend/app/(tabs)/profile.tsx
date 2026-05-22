@@ -5,7 +5,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect, useRouter } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons } from "../../src/components/Ionicons";
 import { api, Vehicle } from "../../src/api";
 import { useAuth } from "../../src/auth";
 import { Colors, Radius } from "../../src/theme";

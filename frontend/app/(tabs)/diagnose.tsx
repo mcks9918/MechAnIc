@@ -27,6 +27,8 @@ export default function Diagnose() {
 
   const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
   const recState = useAudioRecorderState(recorder);
+  // Tracks what to do with the recording when user taps Stop: transcribe speech, or analyze car sound.
+  const [recMode, setRecMode] = useState<"voice" | "sound" | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -70,36 +72,56 @@ export default function Diagnose() {
     }
   };
 
+  const readAudioBase64 = async (uri: string): Promise<string> => {
+    if (Platform.OS === "web") {
+      const blob = await (await fetch(uri)).blob();
+      return await new Promise<string>((resolve) => {
+        const r = new FileReader();
+        r.onloadend = () => resolve((r.result as string).split(",")[1] || "");
+        r.readAsDataURL(blob);
+      });
+    }
+    return await FileSystem.readAsStringAsync(uri, { encoding: "base64" as any });
+  };
+
   const startStopRec = async () => {
     try {
       if (recState.isRecording) {
         await recorder.stop();
         const uri = recorder.uri;
+        const mode = recMode;
+        setRecMode(null);
         if (!uri) return;
         setSending(true);
-        let b64 = "";
-        if (Platform.OS === "web") {
-          const blob = await (await fetch(uri)).blob();
-          b64 = await new Promise<string>((resolve) => {
-            const r = new FileReader();
-            r.onloadend = () => resolve((r.result as string).split(",")[1] || "");
-            r.readAsDataURL(blob);
-          });
-        } else {
-          b64 = await FileSystem.readAsStringAsync(uri, { encoding: "base64" as any });
-        }
         try {
-          const { text: transcript } = await api.transcribe(b64, "audio/m4a");
-          setText((prev) => (prev ? prev + " " : "") + transcript);
+          const b64 = await readAudioBase64(uri);
+          if (mode === "sound") {
+            const userMsg: Msg = { role: "user", text: "🎵 Sent a sound clip for analysis" };
+            setMessages((m) => [...m, userMsg]);
+            scrollToEnd();
+            const res = await api.soundDiagnose({
+              session_id: sessionId,
+              audio_base64: b64,
+              mime: "audio/m4a",
+              note: text.trim() || undefined,
+              vehicle: vehicle ? { make: vehicle.make, model: vehicle.model, year: vehicle.year } : undefined,
+            });
+            setMessages((m) => [...m, { role: "assistant", text: res.reply }]);
+            setText("");
+            scrollToEnd();
+          } else {
+            const { text: transcript } = await api.transcribe(b64, "audio/m4a");
+            setText((prev) => (prev ? prev + " " : "") + transcript);
+          }
         } catch (e: any) {
-          Alert.alert("Transcription failed", e?.message || "Try typing instead");
+          Alert.alert(mode === "sound" ? "Sound analysis failed" : "Transcription failed", e?.message || "Try again");
         } finally {
           setSending(false);
         }
       } else {
         const perm = await AudioModule.requestRecordingPermissionsAsync();
         if (!perm.granted) {
-          Alert.alert("Microphone needed", "Allow microphone access to record symptoms.");
+          Alert.alert("Microphone needed", "Allow microphone access to record audio.");
           return;
         }
         await recorder.prepareToRecordAsync();
@@ -109,6 +131,9 @@ export default function Diagnose() {
       Alert.alert("Recording error", e?.message || "Failed");
     }
   };
+
+  const startVoice = () => { setRecMode("voice"); startStopRec(); };
+  const startSound = () => { setRecMode("sound"); startStopRec(); };
 
   const send = useCallback(async () => {
     if (!text.trim() && !pendingImage) return;
@@ -206,12 +231,25 @@ export default function Diagnose() {
           />
           <ActionButton
             testID="btn-mic"
-            icon={recState.isRecording ? "stop-circle" : "mic-outline"}
-            label={recState.isRecording ? "Stop" : "Voice"}
-            onPress={startStopRec}
-            active={recState.isRecording}
+            icon={recState.isRecording && recMode === "voice" ? "stop-circle" : "mic-outline"}
+            label={recState.isRecording && recMode === "voice" ? "Stop" : "Voice"}
+            onPress={startVoice}
+            active={recState.isRecording && recMode === "voice"}
+          />
+          <ActionButton
+            testID="btn-sound"
+            icon={recState.isRecording && recMode === "sound" ? "stop-circle" : "musical-notes-outline"}
+            label={recState.isRecording && recMode === "sound" ? "Stop" : "Sound"}
+            onPress={startSound}
+            active={recState.isRecording && recMode === "sound"}
           />
         </View>
+
+        {recState.isRecording && recMode === "sound" && (
+          <View style={styles.soundHint}>
+            <Text style={styles.soundHintTxt}>🎵 Recording car sound — Gemini will analyze the acoustics. Type optional context below.</Text>
+          </View>
+        )}
 
         <View style={styles.inputBar}>
           <TextInput
@@ -272,10 +310,12 @@ const styles = StyleSheet.create({
   attachPreview: { flexDirection: "row", alignItems: "center", gap: 10, marginHorizontal: 12, marginBottom: 6, padding: 8, backgroundColor: Colors.surfaceSolid, borderColor: Colors.border, borderWidth: 1, borderRadius: 10 },
   attachTxt: { flex: 1, color: Colors.textSecondary, fontSize: 13 },
   inputBar: { flexDirection: "row", padding: 10, gap: 8, alignItems: "flex-end", borderTopColor: Colors.border, borderTopWidth: 1, backgroundColor: Colors.bgSecondary },
-  actionBar: { flexDirection: "row", paddingHorizontal: 10, paddingTop: 8, gap: 8, backgroundColor: Colors.bgSecondary, borderTopColor: Colors.border, borderTopWidth: 1 },
-  actionBtn: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, paddingVertical: 10, backgroundColor: Colors.surfaceSolid, borderColor: Colors.neonDim, borderWidth: 1, borderRadius: Radius.md },
+  actionBar: { flexDirection: "row", paddingHorizontal: 10, paddingTop: 8, gap: 6, backgroundColor: Colors.bgSecondary, borderTopColor: Colors.border, borderTopWidth: 1 },
+  actionBtn: { flex: 1, flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 4, paddingVertical: 8, backgroundColor: Colors.surfaceSolid, borderColor: Colors.neonDim, borderWidth: 1, borderRadius: Radius.md },
   actionBtnActive: { borderColor: Colors.red, backgroundColor: "rgba(255,59,48,0.08)" },
-  actionLabel: { color: Colors.neon, fontSize: 12, fontWeight: "700", letterSpacing: 1 },
+  actionLabel: { color: Colors.neon, fontSize: 11, fontWeight: "700", letterSpacing: 0.8 },
+  soundHint: { marginHorizontal: 10, marginTop: 6, padding: 8, backgroundColor: "rgba(0,240,255,0.06)", borderColor: Colors.neonDim, borderWidth: 1, borderRadius: 8 },
+  soundHintTxt: { color: Colors.textSecondary, fontSize: 12, lineHeight: 16 },
   iconBtn: { width: 38, height: 38, borderRadius: 10, alignItems: "center", justifyContent: "center", backgroundColor: Colors.surfaceSolid, borderColor: Colors.border, borderWidth: 1 },
   iconBtnActive: { borderColor: Colors.red },
   input: { flex: 1, color: Colors.textPrimary, paddingHorizontal: 14, paddingVertical: 12, backgroundColor: Colors.surfaceSolid, borderRadius: Radius.md, borderColor: Colors.border, borderWidth: 1, fontSize: 14, maxHeight: 100 },

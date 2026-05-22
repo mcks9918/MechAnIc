@@ -18,7 +18,7 @@ import jwt as pyjwt
 import httpx
 from bs4 import BeautifulSoup
 
-from emergentintegrations.llm.chat import LlmChat, UserMessage, ImageContent
+from emergentintegrations.llm.chat import LlmChat, UserMessage, ImageContent, FileContentWithMimeType
 from emergentintegrations.llm.openai.speech_to_text import OpenAISpeechToText
 
 ROOT_DIR = Path(__file__).parent
@@ -96,6 +96,14 @@ class ChatOut(BaseModel):
 class TranscribeIn(BaseModel):
     audio_base64: str
     mime: str = "audio/m4a"
+
+
+class SoundDiagnoseIn(BaseModel):
+    session_id: str
+    audio_base64: str
+    mime: str = "audio/m4a"
+    note: Optional[str] = None  # optional user context ("happens when braking")
+    vehicle: Optional["VehicleIn"] = None
 
 
 class PartsSearchIn(BaseModel):
@@ -339,6 +347,91 @@ async def transcribe(body: TranscribeIn, user=Depends(current_user)):
     except Exception as e:
         log.exception("transcribe failed")
         raise HTTPException(500, f"Transcribe error: {e}")
+
+
+SOUND_DIAGNOSE_SYSTEM = (
+    "You are MechAnIc's acoustic diagnostic ear. The user sends a short audio recording of "
+    "a sound their car is making. Listen carefully and respond in this exact structure:\n\n"
+    "SOUND HEARD: A vivid one-line description (e.g., 'rhythmic metallic ticking at idle, "
+    "~2 Hz', 'high-pitched squeal that rises with engine RPM').\n\n"
+    "LIKELY CAUSE: The most probable mechanical cause (1-2 sentences).\n\n"
+    "ALSO CONSIDER: 1-2 alternative causes worth ruling out.\n\n"
+    "URGENCY: LOW / MEDIUM / HIGH — one line on whether it's safe to keep driving.\n\n"
+    "PARTS TO INSPECT: 3-5 specific part names the user can search for prices.\n\n"
+    "If the audio is unclear, silent, or not a car sound, say so plainly and ask for a clearer recording. "
+    "Be confident and concise. No markdown headers, no asterisks, just clean labelled paragraphs."
+)
+
+
+@api.post("/ai/sound-diagnose", response_model=ChatOut)
+async def sound_diagnose(body: SoundDiagnoseIn, user=Depends(current_user)):
+    tmp_path = None
+    try:
+        raw = body.audio_base64
+        if "," in raw and raw.startswith("data:"):
+            raw = raw.split(",", 1)[1]
+        audio_bytes = base64.b64decode(raw)
+
+        ext = ".m4a"
+        mime = body.mime
+        if "wav" in mime:
+            ext = ".wav"
+        elif "mp3" in mime or "mpeg" in mime:
+            ext = ".mp3"
+        elif "webm" in mime:
+            ext = ".webm"
+        elif "mp4" in mime:
+            ext = ".mp4"
+
+        with tempfile.NamedTemporaryFile(delete=False, suffix=ext) as f:
+            f.write(audio_bytes)
+            tmp_path = f.name
+
+        sys_msg = SOUND_DIAGNOSE_SYSTEM
+        if body.vehicle:
+            sys_msg += f"\n\nUser's vehicle: {body.vehicle.year} {body.vehicle.make} {body.vehicle.model}."
+
+        prompt = "Analyze this audio clip from my car and diagnose what's happening."
+        if body.note and body.note.strip():
+            prompt += f" Context: {body.note.strip()}"
+
+        # Gemini natively understands audio via FileContentWithMimeType
+        gemini_mime = "audio/mpeg" if ext == ".mp3" else (
+            "audio/wav" if ext == ".wav" else (
+                "audio/webm" if ext == ".webm" else "audio/mp4"  # m4a/mp4 both map to audio/mp4
+            )
+        )
+
+        chat = LlmChat(
+            api_key=EMERGENT_LLM_KEY,
+            session_id=f"{user['id']}::sound::{body.session_id}::{uuid.uuid4()}",
+            system_message=sys_msg,
+        ).with_model("gemini", "gemini-2.5-flash")
+
+        audio_file = FileContentWithMimeType(file_path=tmp_path, mime_type=gemini_mime)
+        reply = await chat.send_message(UserMessage(text=prompt, file_contents=[audio_file]))
+
+        # Persist as part of the main chat session so context flows into follow-up Claude turns
+        user_text = body.note.strip() if (body.note and body.note.strip()) else "(audio clip of car sound)"
+        await db.chat_messages.insert_one({
+            "user_id": user["id"],
+            "session_id": body.session_id,
+            "message": f"[SOUND CLIP ATTACHED] {user_text}",
+            "reply": reply,
+            "has_audio": True,
+            "ts": datetime.now(timezone.utc).isoformat(),
+        })
+
+        return ChatOut(session_id=body.session_id, reply=reply)
+    except HTTPException:
+        raise
+    except Exception as e:
+        log.exception("sound_diagnose failed")
+        raise HTTPException(500, f"Sound diagnose error: {e}")
+    finally:
+        if tmp_path:
+            try: os.unlink(tmp_path)
+            except Exception: pass
 
 
 # ---------- Parts Search ----------

@@ -46,6 +46,8 @@ export const api = {
     req<{ session_id: string; reply: string }>("/ai/chat", { method: "POST", body: JSON.stringify(payload) }),
   transcribe: (audio_base64: string, mime: string) =>
     req<{ text: string }>("/ai/transcribe", { method: "POST", body: JSON.stringify({ audio_base64, mime }) }),
+  soundDiagnose: (payload: { session_id: string; audio_base64: string; mime: string; note?: string; vehicle?: any }) =>
+    req<{ session_id: string; reply: string }>("/ai/sound-diagnose", { method: "POST", body: JSON.stringify(payload) }),
   searchParts: (part_name: string, vehicle?: { make?: string; model?: string; year?: number }) =>
     req<PartResult[]>("/parts/search", { method: "POST", body: JSON.stringify({ part_name, ...(vehicle || {}) }) }),
   listDiagnoses: () => req<any[]>("/history/diagnoses"),

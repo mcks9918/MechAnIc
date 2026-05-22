@@ -23,6 +23,7 @@ import {
   Clock,
   User,
   Lightbulb,
+  AudioLines,
 } from "lucide-react-native";
 
 const MAP: Record<string, React.ComponentType<any>> = {
@@ -62,6 +63,8 @@ const MAP: Record<string, React.ComponentType<any>> = {
   "person-outline": User,
   person: User,
   "bulb-outline": Lightbulb,
+  "musical-notes-outline": AudioLines,
+  waveform: AudioLines,
 };
 
 type IoniconsProps = {

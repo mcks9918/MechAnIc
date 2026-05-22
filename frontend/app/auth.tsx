@@ -42,7 +42,7 @@ export default function Auth() {
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
           <View style={styles.header}>
-            <Text style={styles.logo}>◆ GEARMIND</Text>
+            <Text style={styles.logo}>◆ MechAnIc</Text>
             <Text style={styles.tag}>{mode === "login" ? "ACCESS GRANTED" : "INITIALIZE PROFILE"}</Text>
           </View>
 

@@ -21,7 +21,7 @@ export default function Splash() {
     <View style={styles.container} testID="splash-screen">
       <Scanlines />
       <View style={styles.brandWrap}>
-        <Text style={styles.logo}>◆ GEARMIND</Text>
+        <Text style={styles.logo}>◆ MechAnIc</Text>
         <Text style={styles.tag}>AI MECHANIC · PARTS RADAR</Text>
         <View style={styles.divider} />
         <ActivityIndicator color={Colors.neon} />

@@ -16,7 +16,7 @@ type Msg = { role: "user" | "assistant"; text: string; image?: string };
 export default function Diagnose() {
   const [sessionId] = useState(() => `s_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`);
   const [messages, setMessages] = useState<Msg[]>([
-    { role: "assistant", text: "Hi, I'm GearMind — your AI Mechanic. Describe what's happening with your car. You can also send a photo of a dashboard light or part, or tap the mic to record symptoms." },
+    { role: "assistant", text: "Hi, I'm MechAnIc — your AI Mechanic. Describe what's happening with your car. You can also send a photo of a dashboard light or part, or tap the mic to record symptoms." },
   ]);
   const [text, setText] = useState("");
   const [pendingImage, setPendingImage] = useState<string | null>(null); // base64
@@ -237,7 +237,7 @@ function Bubble({ msg }: { msg: Msg }) {
   const isUser = msg.role === "user";
   return (
     <View style={[styles.bubbleWrap, isUser ? styles.bubbleRight : styles.bubbleLeft]}>
-      {!isUser && <Text style={styles.botTag}>GEARMIND</Text>}
+      {!isUser && <Text style={styles.botTag}>MechAnIc</Text>}
       {msg.image && <Image source={{ uri: msg.image }} style={styles.bubbleImg} />}
       <Text style={[styles.bubbleTxt, isUser ? styles.bubbleTxtUser : styles.bubbleTxtBot]}>{msg.text}</Text>
     </View>

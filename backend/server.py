@@ -34,7 +34,7 @@ JWT_EXPIRE_DAYS = 30
 client = AsyncIOMotorClient(MONGO_URL)
 db = client[DB_NAME]
 
-app = FastAPI(title="GearMind API")
+app = FastAPI(title="MechAnIc API")
 api = APIRouter(prefix="/api")
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
@@ -223,7 +223,7 @@ async def delete_vehicle(vehicle_id: str, user=Depends(current_user)):
 
 # ---------- AI Mechanic ----------
 MECHANIC_SYSTEM = (
-    "You are GearMind, an expert AI Mechanic. Diagnose car problems by asking ONE focused, "
+    "You are MechAnIc, an expert AI Mechanic. Diagnose car problems by asking ONE focused, "
     "clarifying question at a time (about symptoms, sounds, smells, when it happens, recent "
     "service, mileage). After 3-5 turns, provide a likely diagnosis with: 1) probable cause, "
     "2) urgency level (low/medium/high), 3) DIY vs shop recommendation, 4) suggested parts to "
@@ -470,7 +470,7 @@ async def save_shopping(body: ShoppingListSave, user=Depends(current_user)):
 
 @api.get("/")
 async def root():
-    return {"service": "GearMind API", "ok": True}
+    return {"service": "MechAnIc API", "ok": True}
 
 
 app.include_router(api)

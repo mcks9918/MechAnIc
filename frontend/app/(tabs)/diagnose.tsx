@@ -158,7 +158,8 @@ export default function Diagnose() {
           <Text style={styles.headerSub}>{vehicle ? `${vehicle.year} ${vehicle.make} ${vehicle.model}` : "No vehicle linked"}</Text>
         </View>
         <TouchableOpacity testID="save-diagnosis" onPress={saveSession} style={styles.saveBtn}>
-          <Ionicons name="bookmark-outline" size={18} color={Colors.neon} />
+          <Ionicons name="bookmark-outline" size={16} color={Colors.neon} />
+          <Text style={styles.saveBtnTxt}>SAVE</Text>
         </TouchableOpacity>
       </View>
 
@@ -189,27 +190,42 @@ export default function Diagnose() {
           </View>
         )}
 
+        {/* Action toolbar — clear icon+label buttons */}
+        <View style={styles.actionBar}>
+          <ActionButton
+            testID="btn-camera"
+            icon="camera-outline"
+            label="Camera"
+            onPress={takePhoto}
+          />
+          <ActionButton
+            testID="btn-attach"
+            icon="image-outline"
+            label="Photo"
+            onPress={pickImage}
+          />
+          <ActionButton
+            testID="btn-mic"
+            icon={recState.isRecording ? "stop-circle" : "mic-outline"}
+            label={recState.isRecording ? "Stop" : "Voice"}
+            onPress={startStopRec}
+            active={recState.isRecording}
+          />
+        </View>
+
         <View style={styles.inputBar}>
-          <TouchableOpacity testID="btn-camera" onPress={takePhoto} style={styles.iconBtn}>
-            <Ionicons name="camera-outline" size={22} color={Colors.neon} />
-          </TouchableOpacity>
-          <TouchableOpacity testID="btn-attach" onPress={pickImage} style={styles.iconBtn}>
-            <Ionicons name="image-outline" size={22} color={Colors.neon} />
-          </TouchableOpacity>
-          <TouchableOpacity testID="btn-mic" onPress={startStopRec} style={[styles.iconBtn, recState.isRecording && styles.iconBtnActive]}>
-            <Ionicons name={recState.isRecording ? "stop-circle" : "mic-outline"} size={22} color={recState.isRecording ? Colors.red : Colors.neon} />
-          </TouchableOpacity>
           <TextInput
             testID="chat-input"
             value={text}
             onChangeText={setText}
-            placeholder={recState.isRecording ? "Recording… tap stop" : "Describe the problem…"}
+            placeholder={recState.isRecording ? "Recording… tap Stop above" : "Describe the problem…"}
             placeholderTextColor={Colors.textTertiary}
             style={styles.input}
             multiline
           />
           <TouchableOpacity testID="btn-send" onPress={send} disabled={sending} style={[styles.sendBtn, sending && { opacity: 0.5 }]}>
-            <Ionicons name="send" size={18} color="#000" />
+            <Ionicons name="send" size={16} color="#000" />
+            <Text style={styles.sendBtnTxt}>SEND</Text>
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
@@ -225,6 +241,15 @@ function Bubble({ msg }: { msg: Msg }) {
       {msg.image && <Image source={{ uri: msg.image }} style={styles.bubbleImg} />}
       <Text style={[styles.bubbleTxt, isUser ? styles.bubbleTxtUser : styles.bubbleTxtBot]}>{msg.text}</Text>
     </View>
+  );
+}
+
+function ActionButton({ icon, label, onPress, active, testID }: { icon: any; label: string; onPress: () => void; active?: boolean; testID?: string }) {
+  return (
+    <TouchableOpacity testID={testID} activeOpacity={0.8} onPress={onPress} style={[styles.actionBtn, active && styles.actionBtnActive]}>
+      <Ionicons name={icon} size={20} color={active ? Colors.red : Colors.neon} />
+      <Text style={[styles.actionLabel, active && { color: Colors.red }]}>{label}</Text>
+    </TouchableOpacity>
   );
 }
 
@@ -246,9 +271,14 @@ const styles = StyleSheet.create({
   typingTxt: { color: Colors.textSecondary, fontSize: 12 },
   attachPreview: { flexDirection: "row", alignItems: "center", gap: 10, marginHorizontal: 12, marginBottom: 6, padding: 8, backgroundColor: Colors.surfaceSolid, borderColor: Colors.border, borderWidth: 1, borderRadius: 10 },
   attachTxt: { flex: 1, color: Colors.textSecondary, fontSize: 13 },
-  inputBar: { flexDirection: "row", padding: 10, gap: 6, alignItems: "flex-end", borderTopColor: Colors.border, borderTopWidth: 1, backgroundColor: Colors.bgSecondary },
+  inputBar: { flexDirection: "row", padding: 10, gap: 8, alignItems: "flex-end", borderTopColor: Colors.border, borderTopWidth: 1, backgroundColor: Colors.bgSecondary },
+  actionBar: { flexDirection: "row", paddingHorizontal: 10, paddingTop: 8, gap: 8, backgroundColor: Colors.bgSecondary, borderTopColor: Colors.border, borderTopWidth: 1 },
+  actionBtn: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, paddingVertical: 10, backgroundColor: Colors.surfaceSolid, borderColor: Colors.neonDim, borderWidth: 1, borderRadius: Radius.md },
+  actionBtnActive: { borderColor: Colors.red, backgroundColor: "rgba(255,59,48,0.08)" },
+  actionLabel: { color: Colors.neon, fontSize: 12, fontWeight: "700", letterSpacing: 1 },
   iconBtn: { width: 38, height: 38, borderRadius: 10, alignItems: "center", justifyContent: "center", backgroundColor: Colors.surfaceSolid, borderColor: Colors.border, borderWidth: 1 },
   iconBtnActive: { borderColor: Colors.red },
-  input: { flex: 1, color: Colors.textPrimary, paddingHorizontal: 14, paddingVertical: 10, backgroundColor: Colors.surfaceSolid, borderRadius: Radius.md, borderColor: Colors.border, borderWidth: 1, fontSize: 14, maxHeight: 100 },
-  sendBtn: { width: 38, height: 38, borderRadius: 10, alignItems: "center", justifyContent: "center", backgroundColor: Colors.neon },
+  input: { flex: 1, color: Colors.textPrimary, paddingHorizontal: 14, paddingVertical: 12, backgroundColor: Colors.surfaceSolid, borderRadius: Radius.md, borderColor: Colors.border, borderWidth: 1, fontSize: 14, maxHeight: 100 },
+  sendBtn: { flexDirection: "row", alignItems: "center", gap: 4, height: 44, paddingHorizontal: 14, borderRadius: Radius.md, backgroundColor: Colors.neon },
+  sendBtnTxt: { color: "#000", fontSize: 12, fontWeight: "800", letterSpacing: 1.5 },
 });

@@ -86,7 +86,7 @@ export default function Diagnose() {
             r.readAsDataURL(blob);
           });
         } else {
-          b64 = await FileSystem.readAsStringAsync(uri, { encoding: FileSystem.EncodingType.Base64 });
+          b64 = await FileSystem.readAsStringAsync(uri, { encoding: "base64" as any });
         }
         try {
           const { text: transcript } = await api.transcribe(b64, "audio/m4a");

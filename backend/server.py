@@ -322,7 +322,8 @@ async def transcribe(body: TranscribeIn, user=Depends(current_user)):
             tmp_path = f.name
 
         stt = OpenAISpeechToText(api_key=EMERGENT_LLM_KEY)
-        result = await stt.transcribe(file=tmp_path, model="whisper-1", response_format="text")
+        with open(tmp_path, "rb") as f:
+            result = await stt.transcribe(file=f, model="whisper-1", response_format="text")
         try:
             os.unlink(tmp_path)
         except Exception:
